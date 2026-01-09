@@ -22,4 +22,8 @@ public class Register {
     @Enumerated(EnumType.STRING)
     private RegisterType type;
 
+    private boolean edited;
+
+    private String observation;
+
 }

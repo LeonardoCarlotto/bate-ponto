@@ -31,4 +31,16 @@ public class RegisterController {
         return registerService.calculateWorkedHours(request);
     }
 
+    @PutMapping("/{id}/edit")
+    public RegisterResponse editRegister(@RequestBody RegisterEditRequest request,
+            @RequestParam Long editorUserId, @PathVariable Long id) throws Exception {
+        request.setRegisterId(id);
+        return registerService.editRegister(request, editorUserId);
+    }
+
+    @GetMapping("/edited/all")
+    public List<RegisterResponse> findAllRegisterEdited() {
+        return registerService.findAllRegisterEdited();
+    }
+
 }

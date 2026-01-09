@@ -4,25 +4,32 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import com.c_code.bate_ponto.dto.RegisterEditRequest;
 import com.c_code.bate_ponto.dto.RegisterRequest;
 import com.c_code.bate_ponto.dto.RegisterResponse;
 import com.c_code.bate_ponto.dto.WorkedHoursRequest;
 import com.c_code.bate_ponto.dto.WorkedHoursResponse;
 import com.c_code.bate_ponto.model.*;
 import com.c_code.bate_ponto.repository.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.time.*;
-import java.time.format.DateTimeFormatter;
 
 @Service
 public class RegisterService {
 
     private final RegisterRepository registerRepository;
     private final UserRepository userRepository;
+    private final RegisterAuditRepository auditRepository;
+    private final ObjectMapper objectMapper;
 
     public RegisterService(RegisterRepository registerRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository, RegisterAuditRepository auditRepository,
+            ObjectMapper objectMapper) {
         this.registerRepository = registerRepository;
         this.userRepository = userRepository;
+        this.auditRepository = auditRepository;
+        this.objectMapper = objectMapper;
     }
 
     @SuppressWarnings("null")
@@ -45,7 +52,7 @@ public class RegisterService {
                 user.getName(),
                 user.getEmail(),
                 register.getDataTime(),
-                register.getType().name());
+                register.getType(), false, null);
     }
 
     private RegisterType calculateNextType(Long userId) {
@@ -67,12 +74,16 @@ public class RegisterService {
 
         return registerRepository.findByUserIdOrderByDataTimeDesc(userId)
                 .stream()
-                .map(r -> new RegisterResponse(
-                        r.getId(),
-                        r.getUser().getName(),
-                        r.getUser().getEmail(),
-                        r.getDataTime(),
-                        r.getType().name()))
+                .map(r -> new RegisterResponse(r))
+                .toList();
+    }
+
+    public List<RegisterResponse> findAllRegisterEdited() {
+
+        return registerRepository.findAll()
+                .stream()
+                .map(r -> new RegisterResponse(r))
+                .filter(r -> r.isEdited())
                 .toList();
     }
 
@@ -111,6 +122,36 @@ public class RegisterService {
         long minutes = duration.minusHours(hours).toMinutes();
 
         return String.format("%02d:%02d", hours, minutes);
+    }
+
+    @SuppressWarnings("null")
+    public RegisterResponse editRegister(RegisterEditRequest request, Long editorUserId) throws Exception {
+        Register register = registerRepository.findById(request.getRegisterId())
+                .orElseThrow(() -> new RuntimeException("Registro não encontrado"));
+
+        String oldData = objectMapper.writeValueAsString(register);
+
+        LocalTime localTime = LocalTime.parse(request.getNewRegistro());
+        LocalDate hoje = LocalDate.now();
+        LocalDateTime dataHora = LocalDateTime.of(hoje, localTime);
+        register.setDataTime(dataHora);
+        String newData = objectMapper.writeValueAsString(register);
+
+        RegisterAudit audit = new RegisterAudit();
+        audit.setRegisterId(register.getId());
+        audit.setUserId(register.getUser().getId());
+        audit.setOldData(oldData);
+        audit.setNewData(newData);
+        audit.setObservation(request.getObservation());
+        audit.setEditedAt(LocalDateTime.now());
+        audit.setEditedByUserId(editorUserId);
+
+        auditRepository.save(audit);
+        register.setEdited(true);
+        register.setObservation(request.getObservation());
+        registerRepository.save(register);
+
+        return new RegisterResponse(register);
     }
 
 }
