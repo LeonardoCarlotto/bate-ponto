@@ -1,10 +1,10 @@
-?? Bate Ponto API
+â±ï¸ Bate Ponto API
 
-API REST para registro de ponto eletrônico, com regras de negócio centralizadas no backend, seguindo conceitos da CLT, permitindo batidas de ponto flexíveis e cálculo de horas trabalhadas por dia.
+API REST para registro de ponto eletrÃ´nico, com regras de negÃ³cio centralizadas no backend, seguindo conceitos da CLT, permitindo batidas de ponto flexÃ­veis e cÃ¡lculo de horas trabalhadas por dia.
 
 Projeto desenvolvido com Spring Boot, JPA/Hibernate e H2 (in-memory) para ambiente de desenvolvimento.
 
-?? Tecnologias utilizadas
+ğŸš€ Tecnologias utilizadas
 
 Java 17
 
@@ -16,41 +16,41 @@ Spring Data JPA
 
 Hibernate
 
-Banco H2 (em memória)
+Banco H2 (em memÃ³ria)
 
 Maven
 
 React (frontend consumidor da API)
 
-?? Arquitetura
+ğŸ“ Arquitetura
 
 O projeto segue uma arquitetura em camadas:
 
-controller  ?  service  ?  repository  ?  database
+controller  â†’  service  â†’  repository  â†’  database
 
 
 Responsabilidades:
 
-Controller: apenas recebe e responde requisições HTTP
+Controller: apenas recebe e responde requisiÃ§Ãµes HTTP
 
-Service: regras de negócio (CLT, validações, cálculo de horas)
+Service: regras de negÃ³cio (CLT, validaÃ§Ãµes, cÃ¡lculo de horas)
 
 Repository: acesso ao banco de dados
 
-DTOs: contrato de entrada e saída da API
+DTOs: contrato de entrada e saÃ­da da API
 
 Model: entidades JPA
 
-?? Como rodar o projeto
+â–¶ï¸ Como rodar o projeto
 mvn clean install
 mvn spring-boot:run
 
 
-A aplicação sobe em:
+A aplicaÃ§Ã£o sobe em:
 
 http://localhost:8080
 
-?? Testes
+ğŸ§ª Testes
 
 Os testes podem ser executados com:
 
