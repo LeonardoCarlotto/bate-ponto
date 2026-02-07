@@ -34,7 +34,6 @@ public class RegisterController {
     @PostMapping("/worked-hours")
     public WorkedHoursResponse workedHours(@RequestBody WorkedHoursRequest request,
             @AuthenticationPrincipal UserDetailsImpl user) {
-        String a = "s";
         return registerService.calculateWorkedHours(request, user.getId());
     }
 
