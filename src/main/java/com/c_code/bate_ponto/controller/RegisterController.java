@@ -4,11 +4,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import com.c_code.bate_ponto.dto.request.RegisterEditRequest;
+import com.c_code.bate_ponto.dto.request.RegisterManualRequest;
 import com.c_code.bate_ponto.dto.request.WorkedHoursRequest;
 import com.c_code.bate_ponto.dto.response.RegisterResponse;
 import com.c_code.bate_ponto.dto.response.WorkedHoursResponse;
 import com.c_code.bate_ponto.service.register.RegisterService;
 import com.c_code.bate_ponto.service.user.UserDetailsImpl;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @RestController
@@ -47,6 +50,18 @@ public class RegisterController {
     @GetMapping("/edited/all")
     public List<RegisterResponse> findAllRegisterEdited() {
         return registerService.findAllRegisterEdited();
+    }
+
+    @PostMapping("/manual")
+    public ResponseEntity<RegisterResponse> createManual(
+            @RequestBody RegisterManualRequest request,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) throws Exception {
+
+        RegisterResponse response = registerService.createManualRegister(
+                request,
+                userDetails.getId());
+
+        return ResponseEntity.ok(response);
     }
 
 }

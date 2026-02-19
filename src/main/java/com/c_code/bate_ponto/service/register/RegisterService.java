@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 import com.c_code.bate_ponto.dto.request.RegisterEditRequest;
+import com.c_code.bate_ponto.dto.request.RegisterManualRequest;
 import com.c_code.bate_ponto.dto.request.WorkedHoursRequest;
 import com.c_code.bate_ponto.dto.response.RegisterResponse;
 import com.c_code.bate_ponto.dto.response.WorkedHoursResponse;
@@ -96,7 +97,7 @@ public class RegisterService {
 
         List<Register> registers = registerRepository.findByUserIdAndDataTimeBetweenOrderByDataTimeAsc(
                 userId,
-                        start,
+                start,
                 end);
 
         Duration total = Duration.ZERO;
@@ -130,11 +131,11 @@ public class RegisterService {
                 .orElseThrow(() -> new RuntimeException("Register not found"));
 
         String oldData = objectMapper.writeValueAsString(register);
-
         LocalTime localTime = LocalTime.parse(request.getNewRegistro());
-        LocalDate hoje = LocalDate.now();
-        LocalDateTime dataHora = LocalDateTime.of(hoje, localTime);
+        LocalDate dataOriginal = register.getDataTime().toLocalDate();
+        LocalDateTime dataHora = LocalDateTime.of(dataOriginal, localTime);
         register.setDataTime(dataHora);
+
         String newData = objectMapper.writeValueAsString(register);
 
         RegisterAudit audit = new RegisterAudit();
@@ -150,6 +151,37 @@ public class RegisterService {
         register.setEdited(true);
         register.setObservation(request.getObservation());
         registerRepository.save(register);
+
+        return new RegisterResponse(register);
+    }
+
+    public RegisterResponse createManualRegister(
+            RegisterManualRequest request,
+            Long userId) throws Exception {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Register register = new Register();
+        register.setUser(user);
+        register.setDataTime(request.getDataTime());
+        register.setType(RegisterType.valueOf(request.getType()));
+        register.setEdited(true);
+        register.setObservation(request.getObservation());
+
+        registerRepository.save(register);
+
+        // Auditoria opcional
+        RegisterAudit audit = new RegisterAudit();
+        audit.setRegisterId(register.getId());
+        audit.setUserId(userId);
+        audit.setOldData("{}");
+        audit.setNewData(objectMapper.writeValueAsString(register));
+        audit.setObservation("Registro manual criado");
+        audit.setEditedAt(LocalDateTime.now());
+        audit.setEditedByUserId(userId);
+
+        auditRepository.save(audit);
 
         return new RegisterResponse(register);
     }
