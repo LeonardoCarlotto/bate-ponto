@@ -48,9 +48,9 @@ public class RegisterController {
         List<RegisterResponse> registros = registerService.findByUserAndPeriodo(user.getId(), mes, ano);
 
         String nameUser = user.getUser().getName();
-        String mesAno = String.format("%02d/%d", mes, ano);
 
-        ByteArrayOutputStream pdf = pdfService.gerarRelatorioPonto(registros, nameUser, mesAno);
+        ByteArrayOutputStream pdf = pdfService.gerarRelatorioPonto(registros, nameUser,
+                registerService.calculateWorkedHoursForMonth(mes, ano, user.getId()));
 
         return ResponseEntity.ok()
                 .header("Content-Disposition", "attachment; filename=relatorio_ponto_" + mes + "_" + ano + ".pdf")

@@ -134,6 +134,36 @@ public class RegisterService {
         return new WorkedHoursResponse(request.getDate(), formatted);
     }
 
+    public WorkedHoursResponse calculateWorkedHoursForMonth(Integer mes, Integer ano, Long userId) {
+
+        LocalDate startDate = LocalDate.of(ano, mes, 1);
+        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(LocalTime.MAX);
+
+        List<Register> registers = registerRepository
+                .findByUserIdAndDataTimeBetweenOrderByDataTimeAsc(userId, start, end);
+
+        Duration total = Duration.ZERO;
+        LocalDateTime entryTime = null;
+
+        for (Register r : registers) {
+            if (r.getType() == RegisterType.ENTRADA) {
+                entryTime = r.getDataTime();
+            } else if (r.getType() == RegisterType.SAIDA && entryTime != null) {
+                total = total.plus(Duration.between(entryTime, r.getDataTime()));
+                entryTime = null;
+            }
+        }
+
+        String formatted = formatDuration(total);
+
+        // Retorna algo como "02/2026" e total de horas
+        String mesAno = String.format("%02d/%d", mes, ano);
+        return new WorkedHoursResponse(mesAno, formatted);
+    }
+
     private String formatDuration(Duration duration) {
 
         long hours = duration.toHours();

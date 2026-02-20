@@ -1,10 +1,8 @@
 package com.c_code.bate_ponto.dto.response;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 public class WorkedHoursResponse {
 
     private String date;
@@ -13,6 +11,11 @@ public class WorkedHoursResponse {
     public WorkedHoursResponse(String date, String totalWorked) {
         this.date = date;
         this.totalWorked = totalWorked;
+    }
+
+    @Override
+    toString(){
+        return "Total horas trabalhadas: " + totalWorked;
     }
 
 }

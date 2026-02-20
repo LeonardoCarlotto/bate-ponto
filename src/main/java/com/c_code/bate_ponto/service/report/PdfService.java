@@ -1,6 +1,7 @@
 package com.c_code.bate_ponto.service.report;
 
 import com.c_code.bate_ponto.dto.response.RegisterResponse;
+import com.c_code.bate_ponto.dto.response.WorkedHoursResponse;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Paragraph;
@@ -15,7 +16,8 @@ import java.util.List;
 @Service
 public class PdfService {
 
-    public ByteArrayOutputStream gerarRelatorioPonto(List<RegisterResponse> registros, String nomeFuncionario, String mesAno) 
+    public ByteArrayOutputStream gerarRelatorioPonto(List<RegisterResponse> registros, String nomeFuncionario,
+            WorkedHoursResponse workedHours)
             throws DocumentException {
 
         Document document = new Document();
@@ -24,8 +26,9 @@ public class PdfService {
 
         document.open();
 
-        document.add(new Paragraph("Relatorio de Ponto - " + mesAno));
         document.add(new Paragraph("Colaborador: " + nomeFuncionario));
+        document.add(new Paragraph("Relatorio de Ponto: " + workedHours.getDate()));
+        
         document.add(new Paragraph("\n"));
 
         PdfPTable table = new PdfPTable(3);
@@ -43,6 +46,7 @@ public class PdfService {
 
         long totalRegistros = registros.size();
         document.add(new Paragraph("\nTotal de Registros: " + totalRegistros));
+        document.add(new Paragraph("Total de Horas Trabalhadas: " + workedHours.getTotalWorked()));
         document.add(new Paragraph("\n"));
         document.add(new Paragraph("\n"));
         document.add (new Paragraph("Assinatura: _______________________________________________"));
