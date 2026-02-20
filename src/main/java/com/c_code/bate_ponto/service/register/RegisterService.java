@@ -2,7 +2,9 @@ package com.c_code.bate_ponto.service.register;
 
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.c_code.bate_ponto.dto.request.RegisterEditRequest;
 import com.c_code.bate_ponto.dto.request.RegisterManualRequest;
@@ -77,6 +79,21 @@ public class RegisterService {
                 .stream()
                 .map(r -> new RegisterResponse(r))
                 .toList();
+    }
+
+    public List<RegisterResponse> findByUserAndPeriodo(Long userId, Integer mes, Integer ano) {
+        List<Register> registros = registerRepository.findByUserIdOrderByDataTimeDesc(userId);
+
+        if (mes != null && ano != null) {
+            registros = registros.stream()
+                    .filter(r -> r.getDataTime().getMonthValue() == mes && r.getDataTime().getYear() == ano)
+                    .collect(Collectors.toList());
+        }
+
+        Collections.reverse(registros);
+        return registros.stream()
+                .map(r -> new RegisterResponse(r))
+                .collect(Collectors.toList());
     }
 
     public List<RegisterResponse> findAllRegisterEdited() {

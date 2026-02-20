@@ -1,6 +1,8 @@
 package com.c_code.bate_ponto.controller;
 
 import org.springframework.web.bind.annotation.*;
+
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 import com.c_code.bate_ponto.dto.request.RegisterEditRequest;
@@ -8,21 +10,24 @@ import com.c_code.bate_ponto.dto.request.RegisterManualRequest;
 import com.c_code.bate_ponto.dto.request.WorkedHoursRequest;
 import com.c_code.bate_ponto.dto.response.RegisterResponse;
 import com.c_code.bate_ponto.dto.response.WorkedHoursResponse;
+import com.c_code.bate_ponto.model.Register;
 import com.c_code.bate_ponto.service.register.RegisterService;
+import com.c_code.bate_ponto.service.report.PdfService;
 import com.c_code.bate_ponto.service.user.UserDetailsImpl;
 
+import lombok.AllArgsConstructor;
+
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/registers")
 public class RegisterController {
 
     private final RegisterService registerService;
-
-    public RegisterController(RegisterService registerService) {
-        this.registerService = registerService;
-    }
+    private final PdfService pdfService;
 
     @PostMapping
     public RegisterResponse register(@AuthenticationPrincipal UserDetailsImpl user) {
@@ -32,6 +37,25 @@ public class RegisterController {
     @GetMapping("/user")
     public List<RegisterResponse> findByUser(@AuthenticationPrincipal UserDetailsImpl user) {
         return registerService.findByUser(user.getId());
+    }
+
+    @GetMapping("/user/pdf")
+    public ResponseEntity<byte[]> reportPdf(
+            @AuthenticationPrincipal UserDetailsImpl user,
+            @RequestParam int mes,
+            @RequestParam int ano) throws Exception {
+
+        List<RegisterResponse> registros = registerService.findByUserAndPeriodo(user.getId(), mes, ano);
+
+        String nameUser = user.getUser().getName();
+        String mesAno = String.format("%02d/%d", mes, ano);
+
+        ByteArrayOutputStream pdf = pdfService.gerarRelatorioPonto(registros, nameUser, mesAno);
+
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=relatorio_ponto_" + mes + "_" + ano + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf.toByteArray());
     }
 
     @PostMapping("/worked-hours")

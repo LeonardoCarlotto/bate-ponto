@@ -25,7 +25,6 @@ public class UserController {
 
     @PostMapping
     public User register(@RequestBody UserRequest request) {
-        System.out.println(request);
         return user.register(
                 request.name,
                 request.email,
